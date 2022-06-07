@@ -1,0 +1,3 @@
+[submodule "Tools/asar"]
+	path = Tools/asar
+	url = https://github.com/RPGHacker/asar
