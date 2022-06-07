@@ -1,3 +1,6 @@
 [submodule "Tools/asar"]
 	path = Tools/asar
 	url = https://github.com/RPGHacker/asar
+[submodule "Tools/ZScreamDungeon"]
+	path = Tools/ZScreamDungeon
+	url = https://github.com/Zarby89/ZScreamDungeon
