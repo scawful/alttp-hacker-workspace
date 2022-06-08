@@ -1,6 +1,5 @@
 ;===========================================================
-; skip intro
-; No Header ALTTP US Rom
+; Skip Intro
 ; Game switches to part 1 after leaving the starting house
 ;===========================================================
 
