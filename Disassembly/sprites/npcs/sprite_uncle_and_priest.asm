@@ -1,6 +1,6 @@
+; ==============================================================================
+; Uncle / Priest/ Sanctuary Mantle Cutscene 
 
-; Two statistically likely candidates for pederasty all rolled into
-; one file.
 
 ; ==============================================================================
 
@@ -597,9 +597,9 @@ Sage_SanctuaryCutscene:
 ; ==============================================================================
 
 ; $2DD72-$2DD9E JUMP LOCATION
-; After Link walks through the mantle and is noticed by the sage. 
 Sage_SanctuaryCutsceneBegin:
 {
+  ; After Link walks through the mantle and is noticed by the sage. 
   LDA.b #$00 : STA $0EB0, X : STA $0DE0, X
   
   LDA $0DF0, X : BNE .alpha
@@ -628,7 +628,6 @@ Sage_SanctuaryCutsceneBegin:
 ; ==============================================================================
 
 ; *$2DD9F-$2DDB2 JUMP LOCATION
-; 
 Sage_SanctuaryCutsceneWarning:
 {
   LDA $7FFE01 : CMP.b #$02 : BNE .alpha
@@ -691,7 +690,6 @@ Sage_SanctuaryCutsceneInstruction:
 
 ; $2DDDF-$2DDE4 DATA
 {
-
 .messages_low
   db $16, $19, $1A
 
