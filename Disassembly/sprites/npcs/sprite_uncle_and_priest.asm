@@ -588,10 +588,10 @@ Sage_SanctuaryCutscene:
   
   JSL UseImplicitRegIndexedLocalJumpTable
   
-  dw Sage_SanctuaryCutsceneBegin ; = $2DD72*
-  dw Sage_SanctuaryCutsceneWarning ; = $2DD9F*
-  dw Sage_SanctuaryCutsceneTransition ; = $2DDB3*
-  dw Sage_SanctuaryCutsceneInstruction ; = $2DDC5*
+  dw Sage_SanctuaryCutsceneBegin        ; = $2DD72*
+  dw Sage_SanctuaryCutsceneWarning      ; = $2DD9F*
+  dw Sage_SanctuaryCutsceneTransition   ; = $2DDB3*
+  dw Sage_SanctuaryCutsceneInstruction  ; = $2DDC5*
 }
 
 ; ==============================================================================
@@ -702,6 +702,8 @@ Sage_SanctuaryCutsceneInstruction:
 ; ==============================================================================
 
 ; *$2DDE5-$2DE23 JUMP LOCATION
+; this is likely any time you visit the sage before you got the pendants
+Sage_SanctuaryIdle:
 {
   JSR Sprite2_DirectionToFacePlayer : TYA : EOR.b #$03 : STA $0EB0, X
   
