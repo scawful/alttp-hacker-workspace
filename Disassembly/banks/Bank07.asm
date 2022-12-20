@@ -4141,6 +4141,7 @@ Link_ReceiveItem:
 ; ==============================================================================
 
 ; *$39A2C-$39A53 LONG
+Link_SpawnInBed:
 {
   ; Puts link in bed asleep
   
@@ -4188,6 +4189,7 @@ Link_ReceiveItem:
 }
 
 ; *$39A62-$39A70 JUMP LOCATION
+Link_GenerateSleeping_Z_Sprites:
 {
   LDA $1A : AND.b #$1F : BNE .noZzzz
   
@@ -4275,6 +4277,7 @@ Player_Sword:
 }
 
 ; $39AE6-$39B0D JUMP TABLE
+Link_ItemButtonJumpTable:
 {
   ; Subprograms that handle the Y button weapons.
   
@@ -4284,16 +4287,16 @@ Player_Sword:
   dw LinkItem_Hammer
   dw LinkItem_Rod
   dw LinkItem_Rod
-  dw $AFF8 ; = $3AFF8*  ; Bug Catching Net
+  dw LinkItem_BugCatchingNet  ; = $3AFF8*  ; Bug Catching Net
   dw LinkItem_ShovelAndFlute
   
   dw LinkItem_Lamp
   dw LinkItem_MagicPowder
-  dw $A15B ; = $3A15B* ; Bottle(s)
-  dw $A471 ; = $3A471* ; Book of Mudora
+  dw LinkItem_Bottles         ; = $3A15B* ; Bottle(s)
+  dw LinkItem_BookOfMudora    ; = $3A471* ; Book of Mudora
   dw PlayerItem_CaneOfByrna
-  dw $AB25 ; = $3AB25* ; Hookshot
-  dw $A569 ; = $3A569* ; Bombos Medallion
+  dw LinkItem_Hookshot        ; = $3AB25* ; Hookshot
+  dw LinkItem_BombosMedallion ; = $3A569* ; Bombos Medallion
   dw LinkItem_EtherMedallion
   
   dw LinkItem_Quake
@@ -4515,6 +4518,7 @@ Player_Sword:
 }
 
 ; $39C4F-$39C5E JUMP TABLE
+Player_ActionButtonJumpTable:
 {
   ; Parameter: $036C
   
@@ -4522,8 +4526,8 @@ Player_Sword:
   
   dw $AA6C ; = $3AA6C* ; ???
   dw Link_Lift          ; Picks up a pot or bush.
-  dw $B281 ; = $3B281* ; Starts dashing
-  dw $B2EE ; = $3B2EE* ; Grabs a wall
+  dw Link_StartDashing  ; Starts dashing $3B281* 
+  dw Link_GrabWall      ; Grabs a wall = $3B2EE*
   dw Link_Read          ; Reads a sign.
   dw Link_Chest         ; Opens a chest.
   dw Link_MovableStatue ; Grabs a Moveable Statue
@@ -5342,6 +5346,7 @@ LinkItem_Boomerang:
 ; ==============================================================================
 
 ; *$3A15B-$3A249 JUMP LOCATION
+LinkItem_Bottles:
 {
   ; Executes when we use a bottle
   
@@ -5859,6 +5864,7 @@ GanonEmerges_SpawnTravelBird:
 ; ==============================================================================
 
 ; *$3A471-$3A493 JUMP LOCATION
+LinkItem_BookOfMudora:
 {
   ; Book of Mudora (0x0B)
   
@@ -6009,6 +6015,7 @@ LinkItem_EtherMedallion:
 }
 
 ; *$3A569-$3A5CE JUMP LOCATION
+LinkItem_BombosMedallion
 {
   ; Bombos medallion (0x0E)
   
@@ -6860,6 +6867,7 @@ LinkItem_Mirror:
 }
 
 ; *$3AB25-$3AB6B JUMP LOCATION
+LinkItem_Hookshot:
 {
   LDA $3A : AND.b #$40 : BNE .BRANCH_ALPHA
   
@@ -7591,6 +7599,7 @@ PlayerItem_CaneOfByrna:
 ; ==============================================================================
 
 ; *$3AFF8-$3B072 LOCAL
+LinkItem_BugCatchingNet:
 {
   BIT $3A : BVS .BRANCH_ALPHA
   
@@ -8048,6 +8057,7 @@ Link_Lift:
 ; ==============================================================================
 
 ; *$3B281-$3B2ED JUMP LOCATION LOCAL
+Link_StartDashing:
 {
   LDA $02F5 : BNE .BRANCH_$3B1CA_THETA
   
@@ -8108,6 +8118,7 @@ Link_Lift:
 ; ==============================================================================
 
 ; *$3B2EE-$3B30F JUMP LOCATION
+Link_GrabWall:
 {
   ; Link grabs a wall action
   LDA $3A : AND.b #$80 : BEQ .noCurrentAction
