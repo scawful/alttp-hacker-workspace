@@ -4,3 +4,6 @@
 [submodule "Tools/ZScreamDungeon"]
 	path = Tools/ZScreamDungeon
 	url = https://github.com/Zarby89/ZScreamDungeon
+[submodule "jpdasm"]
+	path = jpdasm
+	url = https://github.com/spannerisms/jpdasm
