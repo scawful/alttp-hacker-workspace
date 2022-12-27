@@ -1,0 +1,5 @@
+lorom
+org $0CC120
+LDA #$02 : STA $012C
+STA $2140 : STA $0133 : STA $0130
+RTL
