@@ -89,7 +89,7 @@ Link_ControlHandlerTable:
   dw LinkState_Swimming     ; = $3963B* 0x04 - Swimming Mode
   dw LinkState_OnIce        ; = $38872* 0x05 - Turtle Rock Platforms
   dw LinkState_Recoil       ; = $386B5* 0x06 - recoil mode 2
-  dw Player_Electrocution   ; 0x07 - Electrocution Mode
+  dw LinkState_Electrocution   ; 0x07 - Electrocution Mode
   
   dw LinkState_UsingEther   ; = $3A50F* 0x08 - Ether Medallion Mode
   dw LinkState_UsingBombos  ; = $3A5F7* 0x09 - Bombos Medallion Mode
@@ -280,7 +280,7 @@ LinkState_Default:
 
   STZ $48
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   LDA $50 : AND.b #$FE : STA $50
 
@@ -313,7 +313,7 @@ LinkState_Default:
   LDA.b #$07 : STA $5D
 
   ; GO TO ELECTROCUTION MODE
-  BRL Player_Electrocution
+  BRL LinkState_Electrocution
 
   .BRANCH_EPSILON:
 
@@ -444,7 +444,7 @@ LinkState_Default:
 
   .BRANCH_TAU:
 
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
 
   LDA $49 : AND.b #$0F : BNE .BRANCH_UPSILON
 
@@ -490,10 +490,10 @@ LinkState_Default:
 
   .BRANCH_PHI:
 
-  JSR $B64F   ; $3B64F IN ROM
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM; Has to do with opening chests.
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSR Link_HandleDiagonalCollision   ; $3B64F IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM; Has to do with opening chests.
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
 
   LDA $0377 : BEQ .BRANCH_PSI
 
@@ -517,6 +517,7 @@ LinkState_Default:
 ; ==============================================================================
 
 ; *$382DA ALTERNATE ENTRY POINT
+Link_HandleBunnyTransformation:
 {
   ; Has the tempbunny timer counted down yet?
   LDA $03F5 : ORA $03F6 : BEQ routineabove_return
@@ -700,7 +701,7 @@ LinkState_TemporaryBunny:
   STZ $02E1
   STZ $50
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   ; Link hit a wall or an enemy hit him, making him go backwards.
   LDA.b #$02 : STA $5D
@@ -737,7 +738,7 @@ LinkState_TemporaryBunny:
 
   .BRANCH_IOTA:
 
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
   JSR $9B0E ; $39B0E IN ROM
   
   LDA $49 : AND.b #$0F : BNE .BRANCH_KAPPA
@@ -777,10 +778,10 @@ LinkState_TemporaryBunny:
 
   .BRANCH_LAMBDA:
 
-  JSR $B64F   ; $3B64F IN ROM
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSR Link_HandleDiagonalCollision   ; $3B64F IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   STZ $0302
   
@@ -835,7 +836,7 @@ LinkState_HoldingBigRock:
   
   LDA.b #$07 : STA $5D
   
-  BRL Player_Electrocution
+  BRL LinkState_Electrocution
 
   .BRANCH_BETA:
 
@@ -905,7 +906,7 @@ LinkState_HoldingBigRock:
 
   .BRANCH_ZETA:
 
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   STZ $0302
   
@@ -1419,7 +1420,7 @@ LinkState_Recoil:
 
   LDA $5D : CMP.b #$06 : BEQ .BRANCH_DIALPHA
 
-  JSR $B64F ; $3B64F IN ROM
+  JSR Link_HandleDiagonalCollision ; $3B64F IN ROM
 
   LDA $67 : AND.b #$03 : BNE .BRANCH_DIBETA
 
@@ -1439,7 +1440,7 @@ LinkState_Recoil:
 
   LDA $5D : CMP.b #$06 : BEQ .BRANCH_DIGAMMA
 
-  JSR $B7C7 ; $3B7C7 IN ROM
+  JSR Link_HandleCardinalCollision ; $3B7C7 IN ROM
 
   STZ $0302
 
@@ -1574,7 +1575,7 @@ LinkState_OnIce:
 
   .BRANCH_THETA:
 
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
 
   BRL .BRANCH_$386B5 ; GO TO RECOIL MODE (Revision: really recoil mode or just jumping?)
 
@@ -1911,7 +1912,7 @@ LinkHop_HoppingSouthOW:
 
   LDA $0026 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   STZ $0376
   STZ $5E
@@ -2075,7 +2076,7 @@ LinkHop_HoppingSouthOW:
   
   LDA $0026 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   STZ $0376
   STZ $5E
@@ -2187,7 +2188,7 @@ LinkHop_HoppingSouthOW:
 
   LDA $66 : ASL A : TAY
 
-  JSR $CE2A ; $3CE2A IN ROM
+  JSR TileDetect_Movement_Horizontal ; $3CE2A IN ROM
 
   PLY
   PLX
@@ -2206,7 +2207,7 @@ LinkHop_HoppingSouthOW:
   STZ $5E
   STZ $0376
 
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
 
   BRA .BRANCH_BETA
 
@@ -2409,7 +2410,7 @@ LinkState_HoppingDiagonallyDownOW
 
   LDA $0026 : STA $0340
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   STZ $5E
   STZ $0376
@@ -2585,7 +2586,7 @@ LinkState_Dashing:
   
   LDA.b #$07 : STA $5D
   
-  BRL Player_Electrocution
+  BRL LinkState_Electrocution
 
   .BRANCH_ZETA:
 
@@ -2682,7 +2683,7 @@ LinkState_Dashing:
   
   STZ $6B
   
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   LDA $20 : STA $00 : STA $3E
   LDA $22 : STA $01 : STA $3F
@@ -2701,7 +2702,7 @@ LinkState_Dashing:
   LDA $20 : SUB $3E : STA $30
   LDA $22 : SUB $3F : STA $31
   
-  JSR $B7C7 ; $3B7C7 IN ROM
+  JSR Link_HandleCardinalCollision ; $3B7C7 IN ROM
   JSR $E8F0 ; $3E8F0 IN ROM
   
   BRL .BRANCH_ULTIMA
@@ -2774,10 +2775,10 @@ LinkState_Dashing:
 
   STA $67 : STA $26
   
-  JSR $B64F   ; $3B64F IN ROM
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSR Link_HandleDiagonalCollision   ; $3B64F IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   STZ $0302
   
@@ -2818,7 +2819,7 @@ LinkState_Dashing:
 
   .BRANCH_GAMMA2:
 
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   RTS
 }
@@ -2903,7 +2904,7 @@ LinkState_ExitingDashLong:
 
 .dash_hasnt_just_begun
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   LDY.b #$01
   LDA.b #$1D
@@ -3246,13 +3247,13 @@ LinkState_Pits:
 
 .BRANCH_PSI:
 
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
 
 .BRANCH_OMEGA:
 
-  JSR $B64F   ; $3B64F IN ROM
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM
+  JSR Link_HandleDiagonalCollision   ; $3B64F IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
   JSL $07E9D3 ; $3E9D3 IN ROM
 
 .BRANCH_ALTIMA:
@@ -3441,7 +3442,7 @@ LinkState_Pits:
 
   LDA.b #$04 : STA $67
   
-  JSL $07E245 ; $3E245 IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
   
   REP #$20
   
@@ -3523,7 +3524,7 @@ LinkState_Pits:
   
   LDA $26 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   LDA.b #$01 : STA $EE
   
@@ -3576,7 +3577,7 @@ LinkState_Swimming:
   
   STZ $25
   
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
   
   STZ $032A
   STZ $034F
@@ -3606,7 +3607,7 @@ LinkState_Swimming:
   
   LDA $032D : CMP.b #$02 : BEQ .BRANCH_DELTA
   
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
 
   .BRANCH_DELTA:
 
@@ -3692,7 +3693,7 @@ LinkState_Swimming:
   
   STZ $48
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   BRA .BRANCH_MU
 
@@ -3723,10 +3724,10 @@ LinkState_Swimming:
 
 .BRANCH_MU:
 
-  JSR $B64F   ; $3B64F IN ROM
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM
-  JSL $07E6A6 ; $3E6A6 IN ROM
+  JSR Link_HandleDiagonalCollision   ; $3B64F IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
+  JSL Link_HandleMovingAnimation_FullLongEntry ; $3E6A6 IN ROM
   
   STZ $0302
   
@@ -3858,7 +3859,7 @@ LinkState_Swimming:
 ; ==============================================================================
 
 ; *$3983A-$3984A LONG
-Player_ResetSwimState:
+Link_ResetSwimmingState:
 {
   PHB : PHK : PLB
   
@@ -3866,7 +3867,7 @@ Player_ResetSwimState:
   STZ $034F
   STZ $032A
   
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
   
   PLB
   
@@ -3876,10 +3877,11 @@ Player_ResetSwimState:
 ; ==============================================================================
 
 ; $3984B-$39872 LONG
+Link_ResetStateAfterDamagingPit:
 {
   PHB : PHK : PLB
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   LDY.b #$00
   
@@ -3909,7 +3911,7 @@ Player_ResetSwimState:
 ; ==============================================================================
 
 ; *$39873-$39895 LOCAL
-Player_ResetSwimCollision:
+Link_ResetSwimCollision:
 {
   REP #$20
   
@@ -3932,6 +3934,7 @@ Player_ResetSwimCollision:
 ; ==============================================================================
 
 ; *$398A8-$39902 LOCAL
+Link_HandleSwimAcceleration:
 {
   REP #$30
   
@@ -3989,6 +3992,7 @@ Player_ResetSwimCollision:
 }
 
 ; *$39903-$3996B LOCAL
+Link_SetMaxAcceleration:
 {
   REP #$30
   
@@ -4046,7 +4050,7 @@ Player_ResetSwimCollision:
 ; ==============================================================================
 
 ; *$3996C-$399AC LONG BRANCH POINT
-Player_Electrocution:
+LinkState_Electrocution:
 {
   JSR $F514 ; $3F514 in Rom.
   JSL Player_SetElectrocutionMosaicLevel
@@ -4464,14 +4468,14 @@ Link_HandleYItems:
 ; $39B92-$39BA1 JUMP TABLE
 Link_APress_vectors:
 {
-  dw $AAA1 ; = $3AAA1*; RTS, basically
+  dw Link_APress_NothingA ; = $3AAA1*; RTS, basically
   dw Link_APress_LiftCarryThrow ; = $3B1CA* ; pick up a pot / bush / bomb / etc
-  dw $B2ED ; = $3B2ED*
-  dw $B322 ; = $3B322* ; Grabbing wall... prep?
+  dw Link_APress_NothingB ; = $3B2ED*
+  dw Link_APress_PullObject ; = $3B322* ; Grabbing wall... prep?
   dw Link_Read_return  ; Reading.... prep?
   dw $B5BF ; = $3B5BF* ; (RTS); The chest is already open, we're done.
-  dw $B389 ; = $3B389*
-  dw $B40C ; = $3B40C*
+  dw Link_APress_StatueDrag ; = $3B389*
+  dw Link_APress_RupeePull ; = $3B40C*
 }
 
 ; *$39BAA-$39C4E LOCAL
@@ -4597,7 +4601,7 @@ Link_HandleAPress:
 }
 
 ; $39C4F-$39C5E JUMP TABLE
-JT_Link_APress_PerformBasic:
+Link_ActionButtonJumpTable:
 {
   ; Parameter: $036C
   ; Using the A button, Link:
@@ -4612,7 +4616,7 @@ JT_Link_APress_PerformBasic:
 }
 
 ; $39C5F-$39C62 LOCAL
-Link_APress_PerformBasic
+Link_ActionButtonHandler:
 {
   JMP ($9C4F, X) ; SEE JUMP TABLE $39C4F
 
@@ -4883,21 +4887,21 @@ Link_ResetSwordAndItemUsage:
 
   JSR $D077   ; $3D077 IN ROM
 
-  .BRANCH_LAMBDA:
+.BRANCH_LAMBDA:
 
   LDA.b #$0A
 
-  .BRANCH_KAPPA:
+.BRANCH_KAPPA:
 
   STA $3C : TAX
 
   LDA $9CBF, X : STA $3D
 
-  .BRANCH_THETA:
+.BRANCH_THETA:
 
   BRA .BRANCH_RHO
 
-    .BRANCH_DELTA:
+.BRANCH_DELTA:
 
   LDA.b #$09 : STA $3C
 
@@ -5297,7 +5301,7 @@ LinkItem_Bow:
   
   LDA $7EF377 : INC #2 : STA $7EF377
 
-  .BRANCH_DELTA:
+.BRANCH_DELTA:
 
   LDA $0B9A : BNE .BRANCH_EPSILON
   
@@ -6040,6 +6044,7 @@ LinkItem_EtherMedallion:
 }
 
 ; *$3A50F-$3A568 JUMP LOCATION
+LinkState_UsingEther:
 {
   ; ETHER MEDALLION MODE
   
@@ -6152,6 +6157,7 @@ LinkItem_BombosMedallion
 }
 
 ; *$3A5F7-$3A64A JUMP LOCATION
+LinkState_UsingBombos:
 {
   ; BOMBOS MEDALLION MODE
   
@@ -6267,6 +6273,7 @@ LinkItem_QuakeMedallion:
 ; ==============================================================================
 
 ; *$3A6D6-$3A779 JUMP LOCATION
+LinkState_UsingQuake:
 {
   ; QUAKE MEDALLION CODE
   
@@ -6485,7 +6492,7 @@ LinkState_SpinAttack:
   
   LDA.b #$07 : STA $5D
   
-  BRL Player_Electrocution
+  BRL LinkState_Electrocution
 
 .BRANCH_ZETA:
 
@@ -6505,8 +6512,8 @@ LinkState_SpinAttack:
 
   STZ $67 ; Not sure...
   
-  JSL $07E245 ; $3E245 IN ROM
-  JSR $B7C7   ; $3B7C7 IN ROM
+  JSL Link_HandleVelocity ; $3E245 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
   
   LDA.b #$03 : STA $5D
   
@@ -6781,7 +6788,7 @@ LinkItem_Mirror:
   
   LDA $26 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   LDA.b #$04 : STA $5D
   
@@ -6970,7 +6977,7 @@ LinkItem_Hookshot:
   
   JSR Link_CheckNewY_ButtonPress : BCC .BRANCH_ALPHA
   
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
   
   STZ $0300
   
@@ -7189,7 +7196,7 @@ LinkState_Hookshotting:
 
   LDA $26 : STA $0340
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   LDA.b #$15
   LDY.b #$00
@@ -7233,7 +7240,7 @@ LinkState_Hookshotting:
   LDA $21 : STA $40
   LDA $23 : STA $41
 
-  JSR $B7C7   ; $3B7C7 IN ROM
+  JSR Link_HandleCardinalCollision   ; $3B7C7 IN ROM
 
   BRL .BRANCH_ALIF
 
@@ -7323,46 +7330,31 @@ pool LinkItem_Cape:
 ; ==============================================================================
 
 ; *$3ADC1-$3AE61 JUMP LOCATION
+; Magic Cape routine
 LinkItem_Cape:
 {
-  ; Magic Cape routine
-  
   ; Is the magic cape already activated?
   LDA $55 : BNE .BRANCH_ALPHA
-  
   DEC $02E2 : BMI .BRANCH_BETA
-  
   LDA $67 : AND.b #$F0 : STA $67
-  
   BRL .BRANCH_$3AE65
 
 .BRANCH_BETA:
 
   STZ $02E2
-  
   LDA $6C : BNE .BRANCH_$3ADBD ; (RTS)
-  
   JSR Link_CheckNewY_ButtonPress : BCC .BRANCH_$3ADBD
-  
   LDA $3A : AND.b #$BF : STA $3A
-  
   LDA $7EF36E : BEQ .BRANCH_$3AE62
-  
   STZ $0300
-  
   LDA.b #$01 : STA $55
-  
   LDA $7EF37B : TAY
-  
   LDA $AEBE, Y : STA $4C
-  
   LDA.b #$14 : STA $02E2
-  
+
   LDY.b #$04
   LDA.b #$23
-  
   JSL AddTransformationCloud
-  
   LDA.b #$14 : JSR Player_DoSfx2
   
   BRA .BRANCH_EPSILON
@@ -7386,7 +7378,7 @@ LinkItem_Cape:
   LDA .mp_depletion_timers, Y : STA $4C
   
   ; If the magic counter has totally depleted, branch.
-  LDA $7EF36E : DEC A : STA $7EF36E : BEQ .BRANCH_DELTA
+  LDA $7EF36E : DEC A : STA $7EF36E : BEQ Link_ForceUnequipCape
 
 .BRANCH_GAMMA:
 
@@ -8526,7 +8518,7 @@ LinkState_TreePull:
 
 .BRANCH_KAPPA:
 
-  JSR $B7C7 ; $3B7C7 IN ROM
+  JSR Link_HandleCardinalCollision ; $3B7C7 IN ROM
   JSR $E8F0 ; $3E8F0 IN ROM
 
 .BRANCH_MU:
@@ -8741,6 +8733,7 @@ Link_Chest:
 ; ==============================================================================
 
 ; *$3B64F-$3B7C2 LOCAL
+Link_HandleDiagonalCollision:
 {
   ; $3B97C IN ROM
   JSR $B97C : BCC .onlyOneBg
@@ -8980,6 +8973,7 @@ Link_Chest:
 ; ==============================================================================
 
 ; *$3B7C7-$3B955 LOCAL
+Link_HandleCardinalCollision:
 {
   ; Initialize the diagonal wall state
   STZ $6E
@@ -9214,6 +9208,7 @@ Link_Chest:
 }
 
 ; *$3B956-$3B968 LOCAL
+RunSlopeCollisionChecks_VerticalFirst:
 {
   LDA $6B : AND.b #$20 : BNE .BRANCH_ALPHA
   
@@ -9231,12 +9226,13 @@ Link_Chest:
 }
 
 ; *$3B969-$3B97B LOCAL
+RunSlopeCollisionChecks_HorizontalFirst:
 {
   LDA $6B : AND.b #$10 : BNE .BRANCH_ALPHA
   
   JSR $C4D4   ; $3C4D4 IN ROM
 
-  .BRANCH_ALPHA:
+.BRANCH_ALPHA:
 
   LDA $6B : AND.b #$20 : BNE .BRANCH_BETA
   
@@ -9312,6 +9308,7 @@ Link_Chest:
 ; ==============================================================================
 
 ; *$3BA0A-$3BEAE LOCAL
+StartMovementCollisionChecks_Vertical:
 {
   LDA $30 : BNE .changeInYCoord
 
@@ -9647,7 +9644,7 @@ Link_Chest:
   STZ $0376
   STZ $5E
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   LDA.b #$20 : JSR Player_DoSfx2
 
@@ -9896,7 +9893,7 @@ Link_Chest:
 
   LDA.b #$15 : STA $61
 
-; *$3BDB1 LONG BRANCH LOCATION
+  ; *$3BDB1 LONG BRANCH LOCATION
   .BRANCH_THEL:
 
   LDA $0E : AND.b #$07 : BNE .BRANCH_RHA
@@ -9909,7 +9906,7 @@ Link_Chest:
 
   LDA $0310 : BNE .BRANCH_SHIN
 
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
 
   .BRANCH_SHIN:
 
@@ -10147,7 +10144,7 @@ Link_Chest:
   STZ $0376
   STZ $5E
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   LDA $0351 : CMP.b #$01 : BNE .BRANCH_KAPPA
 
@@ -10866,7 +10863,7 @@ Link_Chest:
   
   LDA $26 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   STZ $0376
   STZ $5E
@@ -10985,7 +10982,7 @@ Link_Chest:
 
   RTS
 
-  .BRANCH_ALPHA:
+.BRANCH_ALPHA:
 
   LDA $6C : CMP.b #$02 : BNE .BRANCH_BETA
 
@@ -10995,45 +10992,45 @@ Link_Chest:
 
   BRA .BRANCH_DELTA
 
-  .BRANCH_BETA:
+.BRANCH_BETA:
 
   LDY.b #$04
 
   LDA $31 : BMI .BRANCH_GAMMA
 
-    .BRANCH_DELTA:
+.BRANCH_DELTA:
 
   LDY.b #$06
 
-  .BRANCH_GAMMA:
+.BRANCH_GAMMA:
 
   TYA : LSR A : STA $66
 
-  JSR $CE2A ; $3CE2A IN ROM; Has to do with detecting areas around chests.
+  JSR TileDetect_Movement_Horizontal ; $3CE2A IN ROM; Has to do with detecting areas around chests.
 
   LDA $1B : BNE .BRANCH_EPSILON
 
   BRL .BRANCH_$3C8E9
 
-  .BRANCH_EPSILON:
+.BRANCH_EPSILON:
 
   LDA $0308 : BMI .BRANCH_ZETA
 
   LDA $46 : BEQ .BRANCH_THETA
 
-  .BRANCH_ZETA:
+.BRANCH_ZETA:
 
   LDA $0E : LSR #4 : TSB $0E
 
   BRL .BRANCH_RHO
 
-  .BRANCH_THETA:
+.BRANCH_THETA:
 
   LDA $6A : BNE .BRANCH_IOTA
 
   STZ $57
 
-  .BRANCH_IOTA:
+.BRANCH_IOTA:
 
   LDA $6C : CMP.b #$01 : BNE .BRANCH_KAPPA
 
@@ -11045,14 +11042,14 @@ Link_Chest:
 
   BRL .BRANCH_TAU
 
-  .BRANCH_LAMBDA:
+.BRANCH_LAMBDA:
 
   JSR $CB84   ; $3CB84 IN ROM
   JSR $CBDD   ; $3CBDD IN ROM
 
   BRL .BRANCH_$3D667
 
-  .BRANCH_KAPPA:
+.BRANCH_KAPPA:
 
   LDA $0E : AND.b #$70 : BEQ .BRANCH_RHO
 
@@ -11066,11 +11063,11 @@ Link_Chest:
 
   LDY.b #$03
 
-  .BRANCH_XI:
+.BRANCH_XI:
 
   LDA $B7C3, Y : STA $49
 
-  .BRANCH_NU:
+.BRANCH_NU:
 
   LDA.b #$02 : STA $6C
 
@@ -11084,7 +11081,7 @@ Link_Chest:
 
   BRA .BRANCH_RHO
 
-  .BRANCH_PI:
+.BRANCH_PI:
 
   STZ $6B
   STZ $6C
@@ -11092,17 +11089,17 @@ Link_Chest:
   JSR $CB84   ; $3CB84 IN ROM
   JML $07CB9F ; $3CB9F IN ROM
 
-  .BRANCH_OMICRON:
+.BRANCH_OMICRON:
 
   LDA $0315 : AND.b #$02 : BNE .BRANCH_SIGMA
 
   LDA $50 : AND.b #$FD : STA $50
 
-  .BRANCH_SIGMA:
+.BRANCH_SIGMA:
 
   RTS
 
-  .BRANCH_RHO:
+.BRANCH_RHO:
 
   LDA $0315 : AND.b #$02 : BNE .BRANCH_TAU
 
@@ -11112,7 +11109,7 @@ Link_Chest:
   STZ $EF
   STZ $49
 
-  .BRANCH_TAU:
+.BRANCH_TAU:
 
   LDA $0E : AND.b #$02 : BNE .BRANCH_UPSILON
 
@@ -11126,7 +11123,7 @@ Link_Chest:
 
   RTS
 
-  .BRANCH_UPSILON:
+.BRANCH_UPSILON:
 
   STZ $6B
 
@@ -11138,7 +11135,7 @@ Link_Chest:
 
   BRA .BRANCH_PSI
 
-  .BRANCH_CHI:
+.BRANCH_CHI:
 
   LDA $02E8 : AND.b #$07 : BNE .BRANCH_PSI
 
@@ -11148,7 +11145,7 @@ Link_Chest:
 
   BRA .BRANCH_PSI
 
-  .BRANCH_PHI:
+.BRANCH_PHI:
 
   LDA $0320 : AND.b #$07 : BEQ .BRANCH_OMEGA
 
@@ -11156,13 +11153,13 @@ Link_Chest:
 
   BRA .BRANCH_PSI
 
-  .BRANCH_OMEGA:
+.BRANCH_OMEGA:
 
   ; Apparently they knew how to use TSB but now how to use TRB >___>
   ; LDA.b #$02 : TRB $0322 would have sooooo worked here
   LDA $0322 : AND.b #$FD : STA $0322
 
-  .BRANCH_PSI:
+.BRANCH_PSI:
 
   LDA $02F7 : AND.b #$22 : BEQ .no_blue_rupee_touch
 
@@ -11172,7 +11169,7 @@ Link_Chest:
 
   LDX.b #$08
 
-  .touched_upper_rupee_half
+.touched_upper_rupee_half
 
   STX $00
   STZ $01
@@ -11193,7 +11190,7 @@ Link_Chest:
 
   LDA.b #$0A : JSR Player_DoSfx3
 
-  .no_blue_rupee_touch
+.no_blue_rupee_touch
 
   LDY.b #$01
 
@@ -11204,7 +11201,7 @@ Link_Chest:
 
   LDY.b #$02
 
-  .BRANCH_THEL:
+.BRANCH_THEL:
 
   STY $03F3
 
@@ -11212,7 +11209,7 @@ Link_Chest:
 
   BRA .BRANCH_SIN
 
-  .BRANCH_DEL:
+.BRANCH_DEL:
 
   LDY.b #$03
 
@@ -11223,13 +11220,13 @@ Link_Chest:
 
   LDY.b #$04
 
-  .BRANCH_SOD:
+.BRANCH_SOD:
 
   STY $03F3
 
   BRA .BRANCH_SIN
 
-  .BRANCH_SHIN:
+.BRANCH_SHIN:
 
   LDA $02E8 : AND.b #$07 : BNE .BRANCH_SIN
 
@@ -11237,7 +11234,7 @@ Link_Chest:
 
   STZ $03F3
 
-  .BRANCH_SIN:
+.BRANCH_SIN:
 
   LDA $036E : AND.b #$07 : CMP.b #$07 : BNE .BRANCH_DOD
 
@@ -11252,7 +11249,7 @@ Link_Chest:
 
   BRA .BRANCH_TOD
 
-  .BRANCH_DOD:
+.BRANCH_DOD:
 
   LDA $0341 : AND.b #$07 : CMP.b #$07 : BNE .BRANCH_ZOD
 
@@ -11273,7 +11270,7 @@ Link_Chest:
 
   BRA .BRANCH_TOD
 
-  .BRANCH_HEH:
+.BRANCH_HEH:
 
   LDA.b #$01 : STA $0345
 
@@ -11284,9 +11281,9 @@ Link_Chest:
   STZ $0376
   STZ $5E
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
-  .BRANCH_TOD:
+.BRANCH_TOD:
 
   LDA.b #$01 : STA $037B
 
@@ -11296,7 +11293,7 @@ Link_Chest:
 
   BRA .BRANCH_JIIM
 
-  .BRANCH_ZOD:
+.BRANCH_ZOD:
 
   LDA $0343 : AND.b #$07 : CMP.b #$07 : BNE .BRANCH_JIIM
 
@@ -11308,7 +11305,7 @@ Link_Chest:
 
   BRA .BRANCH_JIIM
 
-  .BRANCH_EIN:
+.BRANCH_EIN:
 
   JSR LinkState_ExitingDash
 
@@ -11327,7 +11324,7 @@ Link_Chest:
 
   JSR $CC3C ; $3CC3C IN ROM
 
-  .BRANCH_JIIM:
+.BRANCH_JIIM:
 
   LDA $59 : AND.b #$05 : BEQ .BRANCH_GHEIN
 
@@ -11345,11 +11342,11 @@ Link_Chest:
   LDA.b #$01 : STA $5B
   LDA.b #$01 : STA $5D
 
-  .BRANCH_FATHA:
+.BRANCH_FATHA:
 
   RTS
 
-  .BRANCH_GHEIN:
+.BRANCH_GHEIN:
 
   STZ $5B
 
@@ -11365,11 +11362,11 @@ Link_Chest:
 
   BRA .BRANCH_KESRA
 
-  .BRANCH_YEH:
+.BRANCH_YEH:
 
   AND.b #$04 : BEQ .BRANCH_KESRA
 
-  .BRANCH_WAW:
+.BRANCH_WAW:
 
   LDA $031F : BNE .BRANCH_KESRA
 
@@ -11382,7 +11379,7 @@ Link_Chest:
 
   BRL .BRANCH_$39222
 
-  .BRANCH_DUMMA:
+.BRANCH_DUMMA:
 
   LDA $02E8 : AND.b #$07 : STA $0E
 
@@ -11393,7 +11390,7 @@ Link_Chest:
 
   LDA $EE : BNE .BRANCH_BETA2
 
-  .BRANCH_ALPHA2:
+.BRANCH_ALPHA2:
 
   LDA $5F : ORA $60 : BEQ .BRANCH_GAMMA2
 
@@ -11409,7 +11406,7 @@ Link_Chest:
 
   LDA $5F
 
-  .BRANCH_THETA2:
+.BRANCH_THETA2:
 
   ASL A : BCC .BRANCH_DELTA2
 
@@ -11441,7 +11438,7 @@ Link_Chest:
 
   DEC A
 
-  .BRANCH_ZETA2:
+.BRANCH_ZETA2:
 
   AND.b #$0F : STA $05E8, X
 
@@ -11451,7 +11448,7 @@ Link_Chest:
 
   PLY : PLA
 
-  .BRANCH_DELTA2:
+.BRANCH_DELTA2:
 
   DEY : BPL .BRANCH_THETA2
 
@@ -11472,21 +11469,21 @@ Link_Chest:
   STZ $5E
 
 ; *$3C7FC LONG BRANCH LOCATION
-  .BRANCH_IOTA2:
+.BRANCH_IOTA2:
 
   LDA $0E : AND.b #$07 : BNE .BRANCH_KAPPA2
 
   BRL .BRANCH_PI2
 
-  .BRANCH_KAPPA2:
+.BRANCH_KAPPA2:
 
   LDA $5D : CMP.b #$04 : BNE .BRANCH_LAMBDA2
 
   LDA $0312 : BNE .BRANCH_LAMBDA2
 
-  JSR Player_ResetSwimCollision
+  JSR Link_ResetSwimCollision
 
-  .BRANCH_LAMBDA2:
+.BRANCH_LAMBDA2:
 
   LDA $0E : AND.b #$02 : BEQ .BRANCH_MU2
 
@@ -11497,7 +11494,7 @@ Link_Chest:
 
   PLA : STA $0E
 
-  .BRANCH_MU2:
+.BRANCH_MU2:
 
   LDA.b #$01 : STA $0302
 
@@ -11507,21 +11504,21 @@ Link_Chest:
 
   BRA .BRANCH_XI2
 
-  .BRANCH_NU2:
+.BRANCH_NU2:
 
   LDA $6A : CMP.b #$02 : BNE .BRANCH_OMICRON2
 
-  .BRANCH_PI2:
+.BRANCH_PI2:
 
   BRL .BRANCH_ALPHA3
 
-  .BRANCH_OMICRON2:
+.BRANCH_OMICRON2:
 
   JSR $CB84 ; $3CB84 IN ROM
 
   LDA $6A : CMP.b #$01 : BEQ .BRANCH_PI2
 
-  .BRANCH_XI2:
+.BRANCH_XI2:
 
   LDA $0E : AND.b #$05 : CMP.b #$05 : BEQ .BRANCH_RHO2
 
@@ -11533,13 +11530,13 @@ Link_Chest:
 
   EOR.b #$FF : INC A
 
-  .BRANCH_TAU2:
+.BRANCH_TAU2:
 
   BPL .BRANCH_UPSILON2
 
   LDY.b #$FF
 
-  .BRANCH_UPSILON2:
+.BRANCH_UPSILON2:
 
   STY $00 : STZ $01
 
@@ -11552,7 +11549,7 @@ Link_Chest:
 
   BRA .BRANCH_PHI2
 
-  .BRANCH_SIGMA2:
+.BRANCH_SIGMA2:
 
   LDY.b #$01
 
@@ -11566,7 +11563,7 @@ Link_Chest:
 
   LDY.b #$FF
 
-  .BRANCH_OMEGA2:
+.BRANCH_OMEGA2:
 
   STY $00 : STZ $01
 
@@ -11574,19 +11571,19 @@ Link_Chest:
 
   LDA $20 : AND.b #$07 : BNE .BRANCH_CHI2
 
-  .BRANCH_RHO2:
+.BRANCH_RHO2:
 
   JSR $C1A1 ; $3C1A1 IN ROM
   JSR $91F1 ; $391F1 IN ROM
 
   BRA .BRANCH_PHI2
 
-  .BRANCH_CHI2:
+.BRANCH_CHI2:
 
   JSR $CBC9 ; $3CBC9 IN ROM
   JMP $D485 ; $3D485 IN ROM
 
-  .BRANCH_PHI2:
+.BRANCH_PHI2:
 
   LDA $66 : ASL A : CMP $2F : BNE .BRANCH_ALPHA3
 
@@ -11596,7 +11593,7 @@ Link_Chest:
 
   DEC $0371 : BPL .BRANCH_GAMMA3
 
-  .BRANCH_BETA3:
+.BRANCH_BETA3:
 
   LDY $0315
 
@@ -11604,7 +11601,7 @@ Link_Chest:
 
   LDA $0315 : ASL #3 : TAY
 
-  .BRANCH_DELTA3:
+.BRANCH_DELTA3:
 
   TYA : TSB $48
 
@@ -11614,13 +11611,13 @@ Link_Chest:
 
   LDA $48 : AND.b #$F6 : STA $48
 
-  .BRANCH_ALPHA3:
+.BRANCH_ALPHA3:
 
   LDA.b #$20 : STA $0371
 
   LDA $48 : AND.b #$FD : STA $48
 
-  .BRANCH_GAMMA3:
+.BRANCH_GAMMA3:
 
   RTS
 }
@@ -11691,7 +11688,7 @@ Link_Chest:
 
   LDA $26 : STA $0340
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   STZ $0376
   STZ $5E
@@ -12210,7 +12207,7 @@ Link_Chest:
   ; this is reached if there is vertical movement
   LDA $31 : BNE .BRANCH_BETA
 
-  .BRANCH_ALPHA:
+.BRANCH_ALPHA:
 
   ; This is executed if there is no horizontal movement (vertical doesn't matter)
   
@@ -12237,7 +12234,7 @@ Link_Chest:
 
 .BRANCH_GAMMA:
 
-  JSR $CE2A ; $3CE2A IN ROM
+  JSR TileDetect_Movement_Horizontal ; $3CE2A IN ROM
   
   LDA $0C : AND.b #$05 : BEQ .BRANCH_DELTA
   
@@ -12354,6 +12351,7 @@ Link_Chest:
 }
 
 ; *$3CDCB-$3CE29 LOCAL
+TileDetect_Movement_Vertical:
 {
   ; This probably the up/down movement handler analagous to $3CE2A below
   REP #$20
@@ -12391,6 +12389,7 @@ Link_Chest:
 }
 
 ; *$3CE2A-$3CE84 LOCAL
+TileDetect_Movement_Horizontal:
 {
   ; Note, this routine only execute when Link is moving horizontally
   ; (Yes, it will execute if he's moving in a diagonal direction since that includes horizontal)
@@ -12433,6 +12432,7 @@ Link_Chest:
 }
 
 ; *$3CE85-$3CEC8 LOCAL
+TileDetect_Movement_VerticalSlopes:
 {
   REP #$20
   
@@ -12463,6 +12463,7 @@ Link_Chest:
 }
 
 ; *$3CEC9-$3CF09 LOCAL
+TileDetect_Movement_HorizontalSlopes:
 {
   REP #$20
   
@@ -12913,7 +12914,7 @@ Player_TileDetectNearby:
   
   LDA $26 : STA $0340
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   BRL .BRANCH_PEY
 
@@ -12927,7 +12928,7 @@ Player_TileDetectNearby:
 
 .BRANCH_TAV:
 
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
 .BRANCH_SIN:
 
@@ -12967,7 +12968,7 @@ Player_TileDetectNearby:
   
   RTS
 
-  .BRANCH_ALPHA:
+.BRANCH_ALPHA:
 
   SEC
   
@@ -13580,6 +13581,7 @@ TileDetect_ResetState:
 ; ==============================================================================
 
 ; $3D7D8-$3D9D7 JUMP TABLE
+TileDetection_DungeonAttributeJumpTable
 {
   ; Dungeon tile attribute handlers
   
@@ -13956,6 +13958,7 @@ TileDetect_Execute:
 ; ==============================================================================
 
 ; $3DA2A-$3DC29 JUMP TABLE
+TileDetection_OverworldAttributeJumpTable:
 {
   ; Overworld Tile Attribute Jump Table
   
@@ -14249,6 +14252,7 @@ TileDetect_Execute:
 }
 
 ; *$3DC2A LONG BRANCH LOCATION
+TileDetection_Execute_overworld:
 {
   JSL Overworld_GetTileAttrAtLocation
 
@@ -14275,28 +14279,31 @@ TileDetect_Execute:
   JMP ($DA2A, X) ; ($3DA2A, X) THAT IS
 
 ; *$3DC4A-$3DC4F ALTERNATE ENTRY POINT
-
+.TileBehavior_HandleItemAndExecute:
   JSL Overworld_Map16_ToolInteraction
   
   BRA .do8x8TileInteraction
 }
 
 ; *$3DC50-$3DC54 JUMP LOCATION
+TileBehavior_StandardCollision:
 {
   ; $0E is the collision bitfield
   LDA $0A : TSB $0E
 
+TileBehavior_Nothing:
 ; *$3DC54 ALTERNATE ENTRY POINT
 
   RTS
 }
 
 ; *$3DC5D-$3DC71 JUMP LOCATION
+TileBehavior_SlopeOuter:
 {
   LDA $0A : TSB $38
 
 ; *$3DC61 ALTERNATE ENTRY POINT
-
+TileBehavior_Slope:
   LDA $0A : TSB $0C
   
   LDA $06 : AND.w #$0003 : ASL A : TAY
@@ -14307,6 +14314,7 @@ TileDetect_Execute:
 }
 
 ; *$3DC72-$3DC7C JUMP LOCATION
+TileBehavior_NorthSingleLayerStairs
 {
   ; Notice how in actuality this routine is identical to the following one.
   LDA $06 : STA $76
@@ -14317,6 +14325,7 @@ TileDetect_Execute:
 }
 
 ; *$3DC7D-$3DC8A JUMP LOCATION
+
 {
   LDA $06 : STA $76
   
@@ -14912,6 +14921,7 @@ TileDetect_Execute:
 ; ==============================================================================
 
 ; *$3E076-$3E111 LOCAL
+FlagMovingIntoSlopes_Vertical
 {
   LDA $51 : AND.b #$07 : STA $00
 
@@ -14921,7 +14931,7 @@ TileDetect_Execute:
 
   DEY
 
-  .BRANCH_ALPHA:
+.BRANCH_ALPHA:
 
   LDA $6E : ASL #2 : STA $01
 
@@ -14938,11 +14948,11 @@ TileDetect_Execute:
 
   BRA .BRANCH_DELTA
 
-  .BRANCH_GAMMA:
+.BRANCH_GAMMA:
 
   LDA $02 : ADD.b #$08
 
-    .BRANCH_DELTA:
+.BRANCH_DELTA:
 
   STA $02
 
@@ -14952,17 +14962,17 @@ TileDetect_Execute:
 
   EOR.b #$FF
 
-  .BRANCH_ZETA:
+.BRANCH_ZETA:
 
   INC A : STA $00
 
   BRA .BRANCH_THETA
 
-  .BRANCH_BETA:
+.BRANCH_BETA:
 
   LDA $E052, X : SUB $00 : STA $00
 
-  .BRANCH_THETA:
+.BRANCH_THETA:
 
   LDA $30 : BEQ .BRANCH_EPSILON : BPL .BRANCH_IOTA
 
@@ -14978,7 +14988,7 @@ TileDetect_Execute:
 
   BRA .BRANCH_KAPPA
 
-  .BRANCH_IOTA:
+.BRANCH_IOTA:
 
   LDA $00 : BPL .BRANCH_EPSILON
 
@@ -14990,7 +15000,7 @@ TileDetect_Execute:
 
   LDA.b #$04
 
-  .BRANCH_KAPPA:
+.BRANCH_KAPPA:
 
   STA $6B
 
@@ -15236,6 +15246,7 @@ pool
 ; ==============================================================================
 
 ; *$3E245-$3E405 LONG
+Link_HandleVelocity:
 {
   PHB : PHK : PLB
   
@@ -15938,6 +15949,7 @@ pool
   
   BRA .BRANCH_STUPID
 
+Link_HandleMovingAnimation_FullLongEntry:
 ; *$3E6A6 ALTERNATE ENTRY POINT
 
   PHB : PHK : PLB
@@ -16303,6 +16315,7 @@ pool
 ; ==============================================================================
 
 ; *$3E8F0-$3E900 LOCAL
+HandleIndoorCameraAndDoors:
 {
   ; If outdoors, ignore
   LDA $1B : BEQ .return
@@ -17493,7 +17506,7 @@ Init_Player:
   STZ $0309
   STZ $0376
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
 
   LDA $50 : AND.b #$FE : STA $50
   
@@ -17531,7 +17544,7 @@ Player_ResetState:
   STZ $031F
   STZ $034A
   
-  JSL Player_ResetSwimState
+  JSL Link_ResetSwimmingState
   
   STZ $02E1
   STZ $031F
