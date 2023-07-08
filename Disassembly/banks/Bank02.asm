@@ -7920,6 +7920,7 @@ shared Overworld_WeathervaneExplosion:
 }
 
 ; *$1340F-$13431 JUMP LOCATION
+Module09_2E_05_LoadDestinationMap:
 {
   INC $0710
   
@@ -7927,19 +7928,19 @@ shared Overworld_WeathervaneExplosion:
   
   JSL UseImplicitRegIndexedLocalJumpTable
   
-  dw $B432 ; = $13432*
-  dw $B44C ; = $1344C*
-  dw $B451 ; = $13451*
-  dw $B46E ; = $1346E*
-  dw $B48A ; = $1348A*
-  dw $B490 ; = $13490*
-  dw $B48A ; = $1348A*
-  dw $B49A ; = $1349A*
-  dw $B49F ; = $1349F*
-  dw $B4AE ; = $134AE*
-  dw $B45F ; = $1345F*
-  dw $B456 ; = $13456*
-  dw $B4EF ; = $134EF*
+  dw Module09_2E_06_SetMapAndChrBank
+  dw Module09_2E_07_WhirlpoolSaturateBlue
+  dw Module09_2E_08_WhirlpoolIsolateBlue
+  dw Module09_2E_09_UploadVramAndRestoreBlue
+  dw Module09_2E_0A_LookupAndLoadMap
+  dw Module09_2E_0B_LoadAmbientOverlay
+  dw Module09_2E_0A_LookupAndLoadMap
+  dw Module09_2E_0C_LoadTransGfx
+  dw Module09_2E_0D_FinishTransGfx
+  dw Module09_2E_0E_LoadPalettes
+  dw Module09_2E_0F_RestoreRedGreen
+  dw Module09_2E_10_GraphicsIncrementalVramUpload
+  dw Module09_2E_11_Reset
 }
 
 ; *$13432-$1344B JUMP LOCATION
